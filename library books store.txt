@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Search</title>
+    <style>
+        /* Styles for demonstration purposes */
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: 60%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #results {
+            margin-top: 20px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Book Search</h1>
+        <input type="text" id="searchInput" placeholder="Enter book title">
+        <button onclick="searchBooks()">Search</button>
+        <div id="results"></div>
+    </div>
+    <script>
+        function searchBooks() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            if (!searchTerm) {
+                resultsDiv.innerHTML = 'Please enter a search term.';
+                return;
+            }
+
+            // Fetch data from Google Books API
+            fetch(https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchTerm)})
+                .then(response => response.json())
+                .then(data => {
+                    if (data.items && data.items.length > 0) {
+                        data.items.forEach(item => {
+                            const bookInfo = item.volumeInfo;
+                            const title = bookInfo.title;
+                            const authors = bookInfo.authors ? bookInfo.authors.join(', ') : 'Unknown author';
+                            const thumbnail = bookInfo.imageLinks ? bookInfo.imageLinks.thumbnail : 'https://via.placeholder.com/128x192.png?text=No+Image';
+                            const previewLink = bookInfo.previewLink;
+                            const purchaseLinks = getPurchaseLinks(bookInfo);
+                            const html = `
+                                <div style="margin-bottom: 20px;">
+                                    <img src="${thumbnail}" alt="${title}" style="width: 128px; height: 192px; float: left; margin-right: 10px;">
+                                    <div style="overflow: hidden;">
+                                        <h2>${title}</h2>
+                                        <p><strong>Author(s):</strong> ${authors}</p>
+                                        <p><a href="${previewLink}" target="_blank">Preview</a></p>
+                                        <p>${purchaseLinks}</p>
+                                    </div>
+                                    <div style="clear: both;"></div>
+                                </div>
+                            `;
+                            resultsDiv.innerHTML += html;
+                        });
+                    } else {
+                        resultsDiv.innerHTML = 'No results found.';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    resultsDiv.innerHTML = 'An error occurred. Please try again later.';
+                });
+        }
+
+        function getPurchaseLinks(bookInfo) {
+            const links = [];
+            if (bookInfo.saleInfo && bookInfo.saleInfo.buyLink) {
+                links.push(<a href="${bookInfo.saleInfo.buyLink}" target="_blank">Buy on Google Play</a>);
+            }
+            return links.join(' | ');
+        }
+    </script>
+</body>
+</html>
